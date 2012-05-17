@@ -1,0 +1,4 @@
+seimos
+======
+
+Hibernate Criteria Encapsulation
