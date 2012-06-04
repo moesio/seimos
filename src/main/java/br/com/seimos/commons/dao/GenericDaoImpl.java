@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.persistence.Id;
+
 import org.hibernate.Criteria;
 import org.hibernate.EntityMode;
 import org.hibernate.HibernateException;
@@ -707,11 +709,25 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 
 	}
 
-	public Model findById(Integer id) {
-		try {
-			return findUnique(new Filters().add(new Filter("id", id)).add(new Filter("descricao")));
-		} catch (QueryException e) {
-			throw new QueryException("Não existe o atributo \"id\" ou \"descricao\" em " + getClass().getSimpleName() + ". \nMétodo findById(Integer) deve ser sobrescrito.");
+	public Model findById(Object id) {
+
+		Filters filters = new Filters();
+		filters.add(new Filter("*", Wildcard.YES));
+
+		Field[] fields = getEntityClass().getDeclaredFields();
+
+		boolean idFound = false;
+		for (Field field : fields) {
+			if (field.getAnnotation(Id.class) != null) {
+				filters.add(new Filter(field.getName(), id));
+				idFound = true;
+			}
+		}
+
+		if (idFound) {
+			return findUnique(filters);
+		} else {
+			throw new QueryException(getEntityClass().getName() + " doesn't have @Id or @EmbeddedId annotated field");
 		}
 	}
 

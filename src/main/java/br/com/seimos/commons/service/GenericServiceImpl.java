@@ -82,7 +82,7 @@ public abstract class GenericServiceImpl<Model, Dao extends GenericDao<Model>> i
 		return getDao().findUnique(filters);
 	}
 
-	public Model findById(Integer id) {
+	public Model findById(Object id) {
 		return getDao().findById(id);
 	}
 

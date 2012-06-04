@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +42,7 @@ import br.com.seimos.commons.service.GenericService;
  * @date Thu Apr 20 17:45:29 BRT 2012
  * 
  */
+@Transactional
 public class GenericCrudController<Model> {
 
 	protected GenericService<Model> service;
@@ -58,6 +60,7 @@ public class GenericCrudController<Model> {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	@ResponseBody
+	@Transactional(readOnly = true)
 	public Collection<Model> list() {
 		return service.list();
 	}
@@ -70,12 +73,13 @@ public class GenericCrudController<Model> {
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
+	@Transactional(readOnly = true)
 	public Model findByID(@PathVariable Integer id) {
-		Filters filters = new Filters().add(new Filter("id", id)).add(new Filter("*", Wildcard.YES));
+		Filters filters = new Filters().add(new Filter("id", id))
+				.add(new Filter("*", Wildcard.YES));
 
 		return service.findUnique(filters);
 	}
-
 
 	/**
 	 * Retrieves a Model using model as example 
@@ -85,7 +89,8 @@ public class GenericCrudController<Model> {
 	 */
 	@RequestMapping(value = "/filter", method = RequestMethod.POST)
 	@ResponseBody
-	public List<Model> findByExample(@RequestBody Model model){
+	@Transactional(readOnly = true)
+	public List<Model> findByExample(@RequestBody Model model) {
 		return service.find(model);
 	}
 
@@ -97,13 +102,13 @@ public class GenericCrudController<Model> {
 	 */
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
+	@Transactional
 	public Boolean create(@RequestBody Model model) {
-
 		try {
 			service.create(model);
 			return true;
 		} catch (Exception e) {
-			logger.error("Create exception for " +  model, e);
+			logger.error("Create exception for " + model, e);
 			return false;
 		}
 
@@ -138,6 +143,7 @@ public class GenericCrudController<Model> {
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
 	@ResponseBody
+	@Transactional
 	public Boolean update(@RequestBody Model model) {
 
 		try {
@@ -157,6 +163,7 @@ public class GenericCrudController<Model> {
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	@ResponseBody
+	@Transactional
 	public Boolean remove(@PathVariable Integer id) {
 
 		try {

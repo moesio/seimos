@@ -25,5 +25,5 @@ public interface GenericService<Model>
 	Model findUnique(Filters filters);
 	Model findUnique(Filter...filters);
 	Model findUnique(List<Filter> filters);
-	Model findById(Integer id);
+	Model findById(Object id);
 }
