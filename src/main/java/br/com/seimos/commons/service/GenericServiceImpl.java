@@ -2,14 +2,10 @@ package br.com.seimos.commons.service;
 
 import java.util.List;
 
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import br.com.seimos.commons.dao.GenericDao;
 import br.com.seimos.commons.hibernate.Filter;
 import br.com.seimos.commons.hibernate.Filters;
 
-@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 public abstract class GenericServiceImpl<Model, Dao extends GenericDao<Model>> implements GenericService<Model> {
 	public abstract Dao getDao();
 

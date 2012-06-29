@@ -23,7 +23,7 @@ import br.com.seimos.commons.service.GenericService;
  * 
  * "models" stands for Model type
  * 
- * Must override constructor for attribute service, with its related service, usually interface <Model>Service. 
+ * Must implement the abstract method getService() with its related service, usually interface <Model>Service. 
  * This constructor should be @Autowired annotated
  * 
  * This controller evaluates URL in RESTFul standard for CRUD as follows
@@ -38,20 +38,15 @@ import br.com.seimos.commons.service.GenericService;
  * 
  * 
  * @author Jackson Coelho
- * @author Moesio Medeiros 
+ * @author Moesio Medeiros 	
  * @date Thu Apr 20 17:45:29 BRT 2012
  * 
  */
-@Transactional
-public class GenericCrudController<Model> {
-
-	protected GenericService<Model> service;
+public abstract class GenericCrudController<Model> {
 
 	private Logger logger = Logger.getLogger(GenericCrudController.class);
-
-	public GenericCrudController(GenericService<Model> service) {
-		this.service = service;
-	}
+	
+	public abstract GenericService<Model> getService();
 
 	/**
 	 * Retrieves a complete list of Model without any filter
@@ -62,7 +57,7 @@ public class GenericCrudController<Model> {
 	@ResponseBody
 	@Transactional(readOnly = true)
 	public Collection<Model> list() {
-		return service.list();
+		return getService().list();
 	}
 
 	/**
@@ -75,11 +70,11 @@ public class GenericCrudController<Model> {
 	@ResponseBody
 	@Transactional(readOnly = true)
 	public Model findByID(@PathVariable Integer id) {
-		Filters filters = new Filters().add(new Filter("id", id))
-				.add(new Filter("*", Wildcard.YES));
+		Filters filters = new Filters().add(new Filter("id", id)).add(new Filter("*", Wildcard.YES));
 
-		return service.findUnique(filters);
+		return getService().findUnique(filters);
 	}
+
 
 	/**
 	 * Retrieves a Model using model as example 
@@ -90,8 +85,8 @@ public class GenericCrudController<Model> {
 	@RequestMapping(value = "/filter", method = RequestMethod.POST)
 	@ResponseBody
 	@Transactional(readOnly = true)
-	public List<Model> findByExample(@RequestBody Model model) {
-		return service.find(model);
+	public List<Model> findByExample(@RequestBody Model model){
+		return getService().find(model);
 	}
 
 	/**
@@ -103,15 +98,14 @@ public class GenericCrudController<Model> {
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	@Transactional
-	public Boolean create(@RequestBody Model model) {
+	public Object create(@RequestBody Model model) {
 		try {
-			service.create(model);
+			getService().create(model);
 			return true;
 		} catch (Exception e) {
 			logger.error("Create exception for " + model, e);
 			return false;
 		}
-
 	}
 
 	/**
@@ -124,7 +118,7 @@ public class GenericCrudController<Model> {
 	@ResponseBody
 	public Boolean create(@RequestBody List<Model> models) {
 		for (Model model : models) {
-			if (create(model)) {
+			if (create(model) != null) {
 				continue;
 			} else {
 				return false;
@@ -145,9 +139,8 @@ public class GenericCrudController<Model> {
 	@ResponseBody
 	@Transactional
 	public Boolean update(@RequestBody Model model) {
-
 		try {
-			service.update(model);
+			getService().update(model);
 		} catch (Exception e) {
 			logger.error("Update exception for " + model, e);
 			return false;
@@ -167,7 +160,7 @@ public class GenericCrudController<Model> {
 	public Boolean remove(@PathVariable Integer id) {
 
 		try {
-			service.remove(id);
+			getService().remove(id);
 			return true;
 		} catch (Exception e) {
 			logger.error("Delete exception for " + id, e);
