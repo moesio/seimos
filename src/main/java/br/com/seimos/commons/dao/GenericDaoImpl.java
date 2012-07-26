@@ -276,7 +276,14 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 				} else {
 					// não contém associações, ou seja, atributos com "."
 					if (Reflection.isCollection(getEntityClass(), attributePath)) {
-						addFiltersFromCollectionFields(iterator, getEntityClass(), attributePath);
+
+						if (!paths.contains(attributePath)) {
+							addFiltersFromCollectionFields(iterator, getEntityClass(), attributePath);
+							criteria.createCriteria(attributePath, attributePath, JoinFragment.LEFT_OUTER_JOIN);
+							paths.add(attributePath);
+						}
+						
+						
 					} else {
 						if (function != null) {
 							addFunctionToCriteria(projections, function, attributePath);
