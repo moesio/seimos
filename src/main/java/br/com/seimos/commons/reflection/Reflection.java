@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
@@ -187,4 +188,19 @@ public class Reflection {
 		return false;
 	}
 
+	public static boolean isCollection(Class<?> clazz, String attributePath) {
+		try {
+			Field field = clazz.getDeclaredField(attributePath);
+			if (field.getType().isAssignableFrom(List.class)) {
+				return true;
+			}
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
 }

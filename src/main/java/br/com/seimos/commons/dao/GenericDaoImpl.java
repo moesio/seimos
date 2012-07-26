@@ -5,11 +5,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import javax.persistence.Id;
 
@@ -174,6 +176,7 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 			return list();
 		} else {
 			ProjectionList projections = Projections.projectionList();
+			
 			ArrayList<String> paths = new ArrayList<String>();
 			ArrayList<String> grouping = new ArrayList<String>();
 
@@ -198,9 +201,12 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 					filters.addAll(getMatchAttributes(getEntityClass(), attribute));
 				}
 			}
-
-			for (Iterator<Filter> iterator = filters.iterator(); iterator.hasNext();) {
-				Filter filter = (Filter) iterator.next();
+			
+			ListIterator<Filter> iterator = filters.listIterator();
+			
+			for (int index = 0; filters.size() > index; index++) {
+				
+				Filter filter = filters.get(index);
 				if (filter.getDistinct() != null && filter.getDistinct() == Distinct.YES) {
 					distinct = true;
 					continue;
@@ -269,24 +275,28 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 					}
 				} else {
 					// não contém associações, ou seja, atributos com "."
-					if (function != null) {
-						addFunctionToCriteria(projections, function, attributePath);
-					} else if (filter.getProjection().equals(Projection.YES)) {
-						// se o atributo será projetado na consulta
-						projections.add(new CustomPropertyAliasProjection(attributePath, attributePath));
-						grouping.add(attributePath);
-					}
-
-					if (order != null) {
-						addOrderToCriteria(criteria, order, attributePath);
-					}
-
-					Criterion restriction = createFilterRestriction(filter, attributePath);
-					if (restriction != null) {
-						criteria.add(restriction);
+					if (Reflection.isCollection(getEntityClass(), attributePath)) {
+						addFiltersFromCollectionFields(iterator, getEntityClass(), attributePath);
+					} else {
+						if (function != null) {
+							addFunctionToCriteria(projections, function, attributePath);
+						} else if (filter.getProjection().equals(Projection.YES)) {
+							// se o atributo será projetado na consulta
+							projections.add(new CustomPropertyAliasProjection(attributePath, attributePath));
+							grouping.add(attributePath);
+						}
+	
+						if (order != null) {
+							addOrderToCriteria(criteria, order, attributePath);
+						}
+	
+						Criterion restriction = createFilterRestriction(filter, attributePath);
+						if (restriction != null) {
+							criteria.add(restriction);
+						}
 					}
 				}
-			} // foreach filter
+			} // for filter
 
 			if (distinct) {
 				criteria.setProjection(Projections.distinct(projections));
@@ -302,16 +312,6 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 
 		criteria.setResultTransformer(new ProjectionResultTransformer(getEntityClass()));
 
-		// try {
-		// lastResult = (Integer)
-		// FlexContext.getHttpRequest().getAttribute("lastResult");
-		// fetchAll = (Integer)
-		// FlexContext.getHttpRequest().getAttribute("fetchAll");
-		// } catch (NoClassDefFoundError e) {
-		// lastResult = 0;
-		// fetchAll = 0;
-		// }
-
 		if (firstResult != null) {
 			criteria.setFirstResult(firstResult);
 		}
@@ -323,6 +323,25 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 
 		List<Model> list = criteria.list();
 		return list;
+	}
+
+	private void addFiltersFromCollectionFields(ListIterator<Filter> filtersIterator, Class<Model> clazz, String attributePath) {
+		try {
+			filtersIterator.next();
+			Field field = clazz.getDeclaredField(attributePath);
+			Type type = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+			Field[] fields = Reflection.getNoTransientFields((Class<?>) type);
+			for (Field f : fields) {
+				filtersIterator.add(new Filter(attributePath + "." + f.getName()));
+			}
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	private List<? extends Filter> getMatchAttributes(Class<Model> clazz, String regex) {
