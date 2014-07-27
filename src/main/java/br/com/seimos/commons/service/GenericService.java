@@ -8,6 +8,7 @@ import br.com.seimos.commons.hibernate.Filters;
 public interface GenericService<Model>
 {
 	Model create(Model entity);
+	void createOrUpdate(Model entity);
 	Model retrieve(Integer id);
 	Model update(Model entity);
 	void remove(Integer id) throws InstantiationException, IllegalAccessException;

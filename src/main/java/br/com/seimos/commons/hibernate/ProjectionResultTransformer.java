@@ -26,6 +26,7 @@ public class ProjectionResultTransformer implements ResultTransformer {
 		this.resultClass = resultClass;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public List<?> transformList(List collection) {
 		return collection;
 	}

@@ -32,6 +32,13 @@ public interface GenericDao<Model>
 	Model create(Model entity);
 	
 	/**
+	 * Save or update based on id
+	 * 
+	 * @param entity
+	 */
+	void createOrUpdate(Model entity);
+
+	/**
 	 * Retrieve an entity for ID
 	 * 
 	 * @param id

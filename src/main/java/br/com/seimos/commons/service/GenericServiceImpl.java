@@ -13,6 +13,10 @@ public abstract class GenericServiceImpl<Model, Dao extends GenericDao<Model>> i
 		return getDao().create(entity);
 	}
 
+	public void createOrUpdate(Model entity) {
+		getDao().createOrUpdate(entity);
+	}
+
 	public Model retrieve(Integer id) {
 		return getDao().retrieve(id);
 	}

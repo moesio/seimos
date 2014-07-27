@@ -20,11 +20,13 @@ public class ProjectionPropertyAcessor implements PropertyAccessor
 {
     private static final Log log = LogFactory.getLog(ProjectionPropertyAcessor.class);
 
+	@SuppressWarnings("rawtypes")
 	public Getter getGetter(Class theClass, String propertyName) throws PropertyNotFoundException
     {
         return new ProjectionGetter(theClass, getterMethod(theClass, propertyName), propertyName);
     }
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Setter getSetter(Class theClass, String propertyName) throws PropertyNotFoundException
     {
         Method getter = getterMethod(theClass, propertyName);
@@ -55,7 +57,7 @@ public class ProjectionPropertyAcessor implements PropertyAccessor
         return null;
     }
 
-	private Method getterMethod(Class theClass, String propertyName)
+	private Method getterMethod(Class<?> theClass, String propertyName)
     {
         String firstLevelPropertyName = null;
         if (propertyName.indexOf(".") >= 0)
@@ -82,7 +84,7 @@ public class ProjectionPropertyAcessor implements PropertyAccessor
         }
 
         if (result == null)
-            throw new PropertyNotFoundException("Verifique a exist�êcia da propriedade " + propertyName + " na classe " + theClass.getCanonicalName());
+            throw new PropertyNotFoundException("Verifique a existência da propriedade " + propertyName + " na classe " + theClass.getCanonicalName());
         else
             return result;
     }
@@ -99,6 +101,7 @@ public class ProjectionPropertyAcessor implements PropertyAccessor
         private Method method;
         private String propertyName;
 
+		@SuppressWarnings("rawtypes")
 		public ProjectionSetter(Class theClass, Method method, String propertyName)
         {
             this.clazz = theClass;
@@ -200,6 +203,7 @@ public class ProjectionPropertyAcessor implements PropertyAccessor
             }
         }
 
+		@SuppressWarnings("rawtypes")
 		public Object getForInsert(Object target, Map mergeMap, SessionImplementor session) throws HibernateException
         {
             return get(target);

@@ -8,8 +8,10 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Transient;
 
 import org.hibernate.LazyInitializationException;
@@ -154,7 +156,7 @@ public class Reflection {
 			throw new LazyInitializationException("");
 		} catch (Exception e) {
 			// em caso de não existir o método. Praticamente impossível, já que
-			// estou trazendo um m�todo preexistente
+			// estou trazendo um método preexistente
 			e.printStackTrace();
 		}
 		return invocation;
@@ -176,16 +178,11 @@ public class Reflection {
 				embeddedCandidateName = attributePath;
 			}
 			field = clazz.getDeclaredField(embeddedCandidateName);
-			for (int i = 0; i < field.getAnnotations().length; i++) {
-				Annotation annotation = field.getAnnotations()[i];
-				if (annotation.annotationType() == EmbeddedId.class) {
-					return true;
-				}
-			}
+			
+			return (field.isAnnotationPresent(EmbeddedId.class) || field.isAnnotationPresent(Embedded.class));
 		} catch (Exception e) {
 			return false;
 		}
-		return false;
 	}
 
 	public static boolean isCollection(Class<?> clazz, String attributePath) {
@@ -202,5 +199,22 @@ public class Reflection {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	public static Field getIdField(Class<?> clazz) {
+		try {
+			Field[] declaredFields;
+			while (clazz != null) {
+				declaredFields = clazz.getDeclaredFields();
+				for (Field field : declaredFields) {
+					if (field.isAnnotationPresent(Id.class))
+						return field;
+				}
+				clazz = clazz.getSuperclass();
+			}
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

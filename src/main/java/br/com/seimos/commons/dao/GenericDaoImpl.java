@@ -16,7 +16,6 @@ import java.util.ListIterator;
 import javax.persistence.Id;
 
 import org.hibernate.Criteria;
-import org.hibernate.EntityMode;
 import org.hibernate.HibernateException;
 import org.hibernate.QueryException;
 import org.hibernate.Session;
@@ -26,6 +25,7 @@ import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.engine.SessionImplementor;
 import org.hibernate.sql.JoinFragment;
 import org.hibernate.transform.RootEntityResultTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +72,12 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 
 	public Model create(Model entity) {
 		Serializable id = getHibernateTemplate().save(entity);
-		getSessionFactory().getClassMetadata(getEntityClass()).setIdentifier(entity, id, EntityMode.POJO);
+		getSessionFactory().getClassMetadata(getEntityClass()).setIdentifier(entity, id, (SessionImplementor) getCurrentSession());
 		return entity;
+	}
+	
+	public void createOrUpdate(Model entity) {
+		getHibernateTemplate().saveOrUpdate(entity);
 	}
 
 	public Model retrieve(Integer id) throws DataAccessException {
@@ -87,7 +91,7 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 	
 	public void remove(Integer id) throws InstantiationException, IllegalAccessException{
 		Model entity = entityClass.newInstance();
-		getSessionFactory().getClassMetadata(getEntityClass()).setIdentifier(entity, id, EntityMode.POJO);
+		getSessionFactory().getClassMetadata(getEntityClass()).setIdentifier(entity, id, (SessionImplementor) getCurrentSession());
 		getHibernateTemplate().delete(entity);
 	}
 
@@ -629,6 +633,20 @@ public class GenericDaoImpl<Model> extends HibernateDaoSupport implements Generi
 				} catch (IllegalArgumentException e) {
 					throw new IllegalArgumentException("\"" + value.toString() + "\" is " + value.getClass() + ". It must be of type String");
 				}
+				break;
+			case NOT_ENDS_WITH:
+				// TODO
+				break;
+			case NOT_ENDS_WITH_CASE_SENSITIVE:
+				// TODO
+				break;
+			case NOT_STARTS_WITH:
+				// TODO
+				break;
+			case NOT_STARTS_WITH_CASE_SENSITIVE:
+				// TODO
+				break;
+			default:
 				break;
 			}
 		}
